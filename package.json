@@ -4,7 +4,7 @@
   "description": "A Tasks Managing App by Node JS",
   "main": "index.js",
   "scripts": {
-    "test": "nodemon app.js -e js"
+    "start": "nodemon app.js -e js"
   },
   "repository": {
     "type": "git",
