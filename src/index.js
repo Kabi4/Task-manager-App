@@ -90,6 +90,7 @@ mongoose.connect(
     {
         useNewUrlParser: true,
         useCreateIndex: true,
+        useUnifiedTopology: true,
     },
     (error, client) => {
         if (error) {
