@@ -17,11 +17,9 @@ app.post('/api/v1/user', (req, res) => {
     newUser
         .save()
         .then(() => {
-            console.log('New User Created', newUser);
             res.send(newUser);
         })
         .catch((err) => {
-            console.log(err);
             res.status(400).send(err);
         });
 });
@@ -32,12 +30,58 @@ app.post('/api/v1/task', (req, res) => {
     newTask
         .save()
         .then(() => {
-            console.log('New User Created', newTask);
             res.send(newTask);
         })
         .catch((err) => {
-            console.log(err);
             res.status(400).send(err);
+        });
+});
+
+app.get('/api/v1/user', (req, res) => {
+    User.find()
+        .then((users) => {
+            res.send(users);
+        })
+        .catch((err) => {
+            res.status(500).send(err);
+        });
+});
+
+app.get('/api/v1/task', (req, res) => {
+    Task.find()
+        .then((tasks) => {
+            res.send(tasks);
+        })
+        .catch((err) => {
+            res.status(500).send(err);
+        });
+});
+
+app.get('/api/v1/user/:id', (req, res) => {
+    const _id = req.params.id;
+    User.findById(_id)
+        .then((user) => {
+            if (!user) {
+                return res.status(404).send();
+            }
+            res.send(user);
+        })
+        .catch((err) => {
+            res.status(500).send(err);
+        });
+});
+
+app.get('/api/v1/task/:id', (req, res) => {
+    const _id = req.params.id;
+    Task.findById(_id)
+        .then((task) => {
+            if (!task) {
+                return res.status(404).send();
+            }
+            res.send(task);
+        })
+        .catch((err) => {
+            res.status(500).send(err);
         });
 });
 
