@@ -1,8 +1,8 @@
 const User = require('../models/User');
-
+const verifyToken = require('../middlewares/Auth');
 const router = require('express').Router();
 
-router.post('/', async (req, res) => {
+router.post('/signup', async (req, res) => {
     // const contents = req.body;
     // const newUser = new User(contents);
     // newUser
@@ -16,11 +16,28 @@ router.post('/', async (req, res) => {
     try {
         const contents = req.body;
         const newUser = await new User(contents).save();
-        res.status(201).send(newUser);
-    } catch (eerror) {
+        const token = await newUser.getAuthToken();
+        res.status(201).send({ newUser, token });
+    } catch (error) {
         res.status(400).send(error);
     }
 });
+
+router.post('/login', async (req, res) => {
+    try {
+        const user = await User.findAndAuthenticate(
+            req.body.email,
+            req.body.password
+        );
+        const token = await user.getAuthToken();
+        res.send({ user, token });
+    } catch (error) {
+        console.log(error);
+        res.status(400).send(error);
+    }
+});
+
+router.use(verifyToken);
 
 router.get('/', async (req, res) => {
     // User.find()
@@ -39,6 +56,9 @@ router.get('/', async (req, res) => {
     } catch (error) {
         res.status(500).send(error);
     }
+});
+router.get('/me', async (req, res) => {
+    res.send(req.user);
 });
 
 router.get('/:id', async (req, res) => {
@@ -114,17 +134,13 @@ router.delete('/:id', async (req, res) => {
     }
 });
 
-router.post('/login', async (req, res) => {
-    try {
-        const user = await User.findAndAuthenticate(
-            req.body.email,
-            req.body.password
-        );
-        res.send(user);
-    } catch (error) {
-        console.log(error);
-        res.status(400).send(error);
-    }
-});
+// router.post('/signup',async (req,res)=>{
+//     try{
+//         if(!req.body.email||!req.body.password||!req.body.name||)
+//     }catch(error){
+//         console.log(error);
+//         res.status(400).send(error);
+//     }
+// })
 
 module.exports = router;
