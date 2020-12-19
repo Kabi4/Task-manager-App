@@ -1,7 +1,8 @@
+const bcrypt = require('bcryptjs');
 const mongoose = require('mongoose');
 const validator = require('validator');
 
-const UserSchema = new mongoose.Schema({
+const userSchema = new mongoose.Schema({
     name: {
         required: true,
         type: String,
@@ -45,6 +46,27 @@ const UserSchema = new mongoose.Schema({
     },
 });
 
-const User = mongoose.model('User', UserSchema);
+userSchema.statics.findAndAuthenticate = async (email, password) => {
+    const user = await User.findOne({ email });
+    if (!user) {
+        throw new Error('Invalid Email or password!');
+    }
+    const isAuth = await bcrypt.compare(password, user.password);
+    if (!isAuth) {
+        throw new Error('Invalid Email or password!');
+    }
+    return user;
+};
+
+//Passwrod Hashing
+userSchema.pre('save', async function (next) {
+    const user = this;
+    if (user.isModified('password')) {
+        user.password = await bcrypt.hash(user.password, 8);
+    }
+    next();
+});
+
+const User = mongoose.model('User', userSchema);
 
 module.exports = User;

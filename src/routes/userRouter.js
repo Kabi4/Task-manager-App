@@ -16,7 +16,7 @@ router.post('/', async (req, res) => {
     try {
         const contents = req.body;
         const newUser = await new User(contents).save();
-        res.send(newUser);
+        res.status(201).send(newUser);
     } catch (eerror) {
         res.status(400).send(error);
     }
@@ -83,7 +83,22 @@ router.patch('/:id', async (req, res) => {
         }
         res.send(user);
     } catch (error) {
-        res.status(400).send(error);
+        res.status(500).send(error);
+    }
+});
+
+router.patch('/updatepassword/:id', async (req, res) => {
+    // console.log('key', process.env.JWT_SECERET_KEY);
+    try {
+        const user = await User.findById(req.params.id);
+        if (!user) {
+            return res.status(404).send('User not found!');
+        }
+        user.password = req.body.newPassword;
+        await user.save();
+        res.send(user);
+    } catch (error) {
+        res.status(500).send(error);
     }
 });
 
@@ -96,6 +111,19 @@ router.delete('/:id', async (req, res) => {
         res.status(204).send();
     } catch (err) {
         res.status(500).send(err);
+    }
+});
+
+router.post('/login', async (req, res) => {
+    try {
+        const user = await User.findAndAuthenticate(
+            req.body.email,
+            req.body.password
+        );
+        res.send(user);
+    } catch (error) {
+        console.log(error);
+        res.status(400).send(error);
     }
 });
 

@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const express = require('express');
-
+const dotenv = require('dotenv');
 const userRouter = require('./routes/userRouter');
 const taskRouter = require('./routes/taskRouter');
 
@@ -10,6 +10,8 @@ const PORT = process.env.PORT || 3000;
 const ConnectionURL = 'mongodb://127.0.0.1:27017/task-manager-api';
 
 app.use(express.json());
+
+dotenv.config({ path: './config.env' });
 
 app.use('/api/v1/user', userRouter);
 app.use('/api/v1/task', taskRouter);

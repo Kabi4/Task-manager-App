@@ -16,7 +16,7 @@ router.post('/', async (req, res) => {
     try {
         const contents = req.body;
         const newTask = await new Task(contents).save();
-        res.send(newTask);
+        res.status(201).send(newTask);
     } catch (error) {
         res.status(400).send(error);
     }
@@ -72,17 +72,22 @@ router.patch('/:id', async (req, res) => {
         return res.status(400).send('A invalid information Received!');
     }
     try {
-        const task = await Task.findByIdAndUpdate(req.params.id, req.body, {
-            new: true,
-            runValidators: true,
-            useFindAndModify: false,
-        });
+        // const task = await Task.findByIdAndUpdate(req.params.id, req.body, {
+        //     new: true,
+        //     runValidators: true,
+        //     useFindAndModify: false,
+        // });
+        const task = await Task.findById(req.params.id);
         if (!task) {
             return res.status(404).send('Task not found!');
         }
+        updates.forEach((update) => {
+            task[update] = req.body[update];
+        });
+        await task.save();
         res.send(task);
     } catch (error) {
-        res.status(400).send(error);
+        res.status(500).send(error);
     }
 });
 
