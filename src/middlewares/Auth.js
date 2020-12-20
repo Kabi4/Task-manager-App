@@ -22,6 +22,7 @@ module.exports = verifyToken = async (req, res, next) => {
         }
         // console.log(user);
         req.user = user;
+        req.token = token;
         next();
     } catch (error) {
         res.status(401).send({

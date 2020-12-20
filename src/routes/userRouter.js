@@ -39,6 +39,30 @@ router.post('/login', async (req, res) => {
 
 router.use(verifyToken);
 
+router.get('/logout', async (req, res) => {
+    try {
+        req.user.tokens = req.user.tokens.filter(
+            (token) => token.token !== req.token
+        );
+        await req.user.save();
+        res.send({ token: '' });
+    } catch (error) {
+        res.status(500).send();
+    }
+});
+
+router.get('/logoutallsesions', async (req, res) => {
+    try {
+        req.user.tokens = req.user.tokens.filter(
+            (token) => token.token === req.token
+        );
+        await req.user.save();
+        res.send({ token: req.user.tokens[0].token });
+    } catch (error) {
+        res.status(500).send();
+    }
+});
+
 router.get('/', async (req, res) => {
     // User.find()
     //     .then((users) => {
@@ -115,8 +139,10 @@ router.patch('/updatepassword/:id', async (req, res) => {
             return res.status(404).send('User not found!');
         }
         user.password = req.body.newPassword;
+        user.tokens = [];
         await user.save();
-        res.send(user);
+        const token = await user.getAuthToken();
+        res.send({ user, token });
     } catch (error) {
         res.status(500).send(error);
     }
