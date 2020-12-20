@@ -1,6 +1,9 @@
 const Task = require('../models/Task');
-
+const verifyToken = require('../middlewares/Auth');
 const router = require('express').Router();
+const { ObjectId } = require('mongoose');
+
+router.use(verifyToken);
 
 router.post('/', async (req, res) => {
     // const contents = req.body;
@@ -15,6 +18,7 @@ router.post('/', async (req, res) => {
     //     });
     try {
         const contents = req.body;
+        contents.owner = req.user._id;
         const newTask = await new Task(contents).save();
         res.status(201).send(newTask);
     } catch (error) {
@@ -31,12 +35,19 @@ router.get('/', async (req, res) => {
     //         res.status(500).send(err);
     //     });
     try {
-        const tasks = await Task.find();
+        let tasks = await Task.find();
+        // console.log(
+        //     typeof tasks[0].owner.toString() === typeof req.user._id.toString()
+        // );
+        tasks = tasks.filter(
+            (task) => task.owner._id.toString() === req.user._id.toString()
+        );
         res.send({
             count: tasks.length,
             tasks,
         });
     } catch (error) {
+        // console.log(error);
         res.status(500).send(error);
     }
 });
@@ -55,6 +66,9 @@ router.get('/:id', async (req, res) => {
     //     });
     try {
         const task = await Task.findById(_id);
+        if (!(task.owner._id.toString() === req.user._id.toString())) {
+            return res.status(404).send();
+        }
         if (!task) {
             return res.status(404).send();
         }
@@ -78,6 +92,9 @@ router.patch('/:id', async (req, res) => {
         //     useFindAndModify: false,
         // });
         const task = await Task.findById(req.params.id);
+        if (!(task.owner._id.toString() === req.user._id.toString())) {
+            return res.status(404).send();
+        }
         if (!task) {
             return res.status(404).send('Task not found!');
         }
@@ -93,7 +110,11 @@ router.patch('/:id', async (req, res) => {
 
 router.delete('/:id', async (req, res) => {
     try {
-        const task = await Task.findByIdAndDelete(req.params.id);
+        const task = await Task.findOneAndDelete({
+            _id: req.params.id,
+            owner: req.user._id,
+        });
+
         if (!task) {
             return res.status(404).send('Task not found!');
         }

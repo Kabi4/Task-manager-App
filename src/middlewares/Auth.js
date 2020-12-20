@@ -20,11 +20,18 @@ module.exports = verifyToken = async (req, res, next) => {
         if (!user) {
             throw Error('Token bad token or expired');
         }
+        await user
+            .populate({
+                path: 'tasks',
+                select: 'description completed -owner',
+            })
+            .execPopulate();
         // console.log(user);
         req.user = user;
         req.token = token;
         next();
     } catch (error) {
+        console.log(error);
         res.status(401).send({
             message: error || 'You require to log in to fetch this route!',
         });

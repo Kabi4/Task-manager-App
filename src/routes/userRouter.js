@@ -1,5 +1,6 @@
 const User = require('../models/User');
 const verifyToken = require('../middlewares/Auth');
+const verifyAdmin = require('../middlewares/VerifyAdmin');
 const router = require('express').Router();
 
 router.post('/signup', async (req, res) => {
@@ -15,6 +16,7 @@ router.post('/signup', async (req, res) => {
     //     });
     try {
         const contents = req.body;
+        req.body.admin && req.body.admin == false;
         const newUser = await new User(contents).save();
         const token = await newUser.getAuthToken();
         res.status(201).send({ newUser, token });
@@ -63,6 +65,51 @@ router.get('/logoutallsesions', async (req, res) => {
     }
 });
 
+router.delete('/me', async (req, res) => {
+    await req.user.remove();
+    res.status(204).send();
+});
+
+router.get('/me', async (req, res) => {
+    res.send({ user: req.user, tasks: req.user.tasks });
+});
+
+router.patch('/me', async (req, res) => {
+    const updates = Object.keys(req.body);
+    const allowedUpdates = ['name', 'age', 'email'];
+    const isValid = updates.every((update) => allowedUpdates.includes(update));
+    if (!isValid) {
+        return res
+            .status(400)
+            .send('A Sensitive information or invalid information sent!');
+    }
+    try {
+        const user = await User.findByIdAndUpdate(req.user._id, req.body, {
+            new: true,
+            runValidators: true,
+        });
+
+        res.send(user);
+    } catch (error) {
+        res.status(500).send(error);
+    }
+});
+
+router.patch('/me/updatepassword', async (req, res) => {
+    // console.log('key', process.env.JWT_SECERET_KEY);
+    try {
+        req.user.password = req.body.newPassword;
+        req.user.tokens = [];
+        await req.user.save();
+        const token = await req.user.getAuthToken();
+        res.send({ user, token });
+    } catch (error) {
+        res.status(500).send(error);
+    }
+});
+
+router.use(verifyAdmin);
+
 router.get('/', async (req, res) => {
     // User.find()
     //     .then((users) => {
@@ -80,9 +127,6 @@ router.get('/', async (req, res) => {
     } catch (error) {
         res.status(500).send(error);
     }
-});
-router.get('/me', async (req, res) => {
-    res.send(req.user);
 });
 
 router.get('/:id', async (req, res) => {

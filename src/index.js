@@ -3,6 +3,7 @@ const express = require('express');
 const dotenv = require('dotenv');
 const userRouter = require('./routes/userRouter');
 const taskRouter = require('./routes/taskRouter');
+const User = require('./models/User');
 
 const app = express();
 
@@ -34,3 +35,14 @@ mongoose.connect(
 app.listen(PORT, () => {
     console.log(`Server up and running on PORT ${PORT}`);
 });
+
+// (async () => {
+//     const user = await User.findById('5fdecb433673b70ee059a270');
+//     await user
+//         .populate({
+//             path: 'tasks',
+//             select: 'description completed -owner',
+//         })
+//         .execPopulate();
+//     console.log(user.tasks);
+// })();
