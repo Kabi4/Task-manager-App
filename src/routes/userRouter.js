@@ -71,7 +71,7 @@ router.delete('/me', async (req, res) => {
 });
 
 router.get('/me', async (req, res) => {
-    res.send({ user: req.user, tasks: req.user.tasks });
+    res.send({ user: req.user });
 });
 
 router.patch('/me', async (req, res) => {

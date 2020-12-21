@@ -4,60 +4,67 @@ const validator = require('validator');
 const jwt = require('jsonwebtoken');
 const Task = require('./Task');
 
-const userSchema = new mongoose.Schema({
-    name: {
-        required: true,
-        type: String,
-        trim: true,
-    },
-    age: {
-        type: Number,
-        default: 15,
-        validate(value) {
-            if (value < 0) {
-                throw Error('Age must be Positive');
-            }
+const userSchema = new mongoose.Schema(
+    {
+        name: {
+            required: true,
+            type: String,
+            trim: true,
         },
-    },
-    email: {
-        type: String,
-        lowercase: true,
-        unique: true,
-        trim: true,
-        required: true,
-        validate(value) {
-            if (!validator.isEmail(value)) {
-                throw Error('Invalid Email provided');
-            }
-        },
-    },
-    password: {
-        required: true,
-        type: String,
-        minLength: 6,
-        trim: true,
-        validate(value) {
-            if (
-                value.includes('password') ||
-                value.includes('Password') ||
-                value.includes('PASSWORD')
-            ) {
-                throw Error('Such a pathetic password try something else!');
-            }
-        },
-    },
-    tokens: [
-        {
-            token: {
-                type: String,
+        age: {
+            type: Number,
+            default: 15,
+            validate(value) {
+                if (value < 0) {
+                    throw Error('Age must be Positive');
+                }
             },
         },
-    ],
-    admin: {
-        type: Boolean,
-        default: false,
+        email: {
+            type: String,
+            lowercase: true,
+            unique: true,
+            trim: true,
+            required: true,
+            validate(value) {
+                if (!validator.isEmail(value)) {
+                    throw Error('Invalid Email provided');
+                }
+            },
+        },
+        password: {
+            required: true,
+            type: String,
+            minLength: 6,
+            trim: true,
+            validate(value) {
+                if (
+                    value.includes('password') ||
+                    value.includes('Password') ||
+                    value.includes('PASSWORD')
+                ) {
+                    throw Error('Such a pathetic password try something else!');
+                }
+            },
+        },
+        tokens: [
+            {
+                token: {
+                    type: String,
+                },
+            },
+        ],
+        admin: {
+            type: Boolean,
+            default: false,
+        },
     },
-});
+    {
+        toJSON: { virtuals: true },
+        toObject: { virtuals: true },
+        timestamps: true,
+    }
+);
 
 userSchema.virtual('tasks', {
     ref: 'Task',
@@ -97,12 +104,12 @@ userSchema.pre('save', async function (next) {
     next();
 });
 
-// userSchema.pre(/^find/, async function (next) {
-//     this.populate({
+// userSchema.post(/^find/, async function () {
+//     console.log(this);
+//     await this.populate({
 //         path: 'tasks',
-//         select: 'desciption completed',
+//         select: 'description completed -owner',
 //     });
-//     next();
 // });
 
 userSchema.pre('remove', async function (next) {
@@ -116,6 +123,14 @@ userSchema.pre('remove', async function (next) {
 
     next();
 });
+
+// userSchema.pre(/^find/, async function (next) {
+//     this.populate({
+//         path: 'tasks',
+//         select: 'description completed -owner',
+//     });
+//     next();
+// });
 
 const User = mongoose.model('User', userSchema);
 

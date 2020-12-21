@@ -35,13 +35,49 @@ router.get('/', async (req, res) => {
     //         res.status(500).send(err);
     //     });
     try {
-        let tasks = await Task.find();
         // console.log(
         //     typeof tasks[0].owner.toString() === typeof req.user._id.toString()
         // );
-        tasks = tasks.filter(
-            (task) => task.owner._id.toString() === req.user._id.toString()
-        );
+        let completed = undefined;
+        let tasks = [];
+        if (req.query.sortBy) {
+            const sortBy = req.query.sortBy.split(',').join(' ');
+            //sort('price ratingAverage')
+            tasks = await Task.find().sort(sortBy);
+        } else {
+            tasks = await Task.find().sort('-createdAt');
+        }
+        if (req.query.completed) {
+            completed =
+                req.query.completed.toLowerCase() === 'true' ? true : undefined;
+            if (!completed)
+                completed =
+                    req.query.completed.toLowerCase() === 'false'
+                        ? false
+                        : undefined;
+        }
+
+        if (completed === undefined) {
+            tasks = tasks.filter(
+                (task) => task.owner._id.toString() === req.user._id.toString()
+            );
+        } else {
+            tasks = tasks.filter(
+                (task) =>
+                    task.owner._id.toString() === req.user._id.toString() &&
+                    task.completed === completed
+            );
+        }
+        if (
+            parseInt(req.query.page) > 0 &&
+            parseInt(req.query.page) !== NaN &&
+            parseInt(req.query.limit) !== NaN
+        ) {
+            tasks = tasks.splice(
+                (parseInt(req.query.page) - 1) * parseInt(req.query.limit),
+                parseInt(req.query.limit)
+            );
+        }
         res.send({
             count: tasks.length,
             tasks,
