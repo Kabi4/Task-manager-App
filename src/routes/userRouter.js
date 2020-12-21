@@ -2,6 +2,20 @@ const User = require('../models/User');
 const verifyToken = require('../middlewares/Auth');
 const verifyAdmin = require('../middlewares/VerifyAdmin');
 const router = require('express').Router();
+const multer = require('multer');
+
+const upload = multer({
+    // dest: 'images',
+    limits: {
+        fileSize: 1000000,
+    },
+    fileFilter(req, file, cb) {
+        if (!file.originalname.match(/\.(jpeg|jpg|png)$/)) {
+            cb(new Error('Please upload JPG,JPEG,PNG file types only!'));
+        }
+        cb(undefined, true);
+    },
+});
 
 router.post('/signup', async (req, res) => {
     // const contents = req.body;
@@ -40,7 +54,33 @@ router.post('/login', async (req, res) => {
 });
 
 router.use(verifyToken);
+router.post(
+    '/me/avatar',
+    upload.single('upload'),
+    async (req, res) => {
+        // console.log(req.file);
+        req.user.avatar = req.file.buffer;
+        await req.user.save();
+        res.send({
+            status: 'success',
+            message: 'You avatar Succesfully uploaded',
+        });
+    },
+    (error, req, res, next) => {
+        res.status(400).json({
+            error: error.message,
+        });
+    }
+);
 
+router.delete('/me/avatar', async (req, res) => {
+    req.user.avatar = undefined;
+    await req.user.save();
+    res.status(204).send({
+        status: 'success',
+        message: 'You avatar Succesfully REmoved',
+    });
+});
 router.get('/logout', async (req, res) => {
     try {
         req.user.tokens = req.user.tokens.filter(
@@ -109,6 +149,18 @@ router.patch('/me/updatepassword', async (req, res) => {
 });
 
 router.use(verifyAdmin);
+
+router.get('/me/:id/avatar', async (req, res) => {
+    try {
+        const user = await User.findById(req.params.id);
+        if (!user || !user.avatar) {
+            throw new Error();
+        }
+        res.set('Content-Type', 'image/*').send(user.avatar);
+    } catch (error) {
+        res.status(404).send({ error: 'No Avatar or user Found!' });
+    }
+});
 
 router.get('/', async (req, res) => {
     // User.find()

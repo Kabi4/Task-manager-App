@@ -1,10 +1,9 @@
 const mongoose = require('mongoose');
 const express = require('express');
 const dotenv = require('dotenv');
-const multer = require('multer');
 const userRouter = require('./routes/userRouter');
 const taskRouter = require('./routes/taskRouter');
-const User = require('./models/User');
+// const User = require('./models/User');
 
 const app = express();
 
