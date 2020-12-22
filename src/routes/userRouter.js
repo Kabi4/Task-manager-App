@@ -3,11 +3,13 @@ const verifyToken = require('../middlewares/Auth');
 const verifyAdmin = require('../middlewares/VerifyAdmin');
 const router = require('express').Router();
 const multer = require('multer');
+const sharp = require('sharp');
+const { sendWelcomeEmail, niklLaudeEmail } = require('../emails/account');
 
 const upload = multer({
     // dest: 'images',
     limits: {
-        fileSize: 1000000,
+        fileSize: 4000000,
     },
     fileFilter(req, file, cb) {
         if (!file.originalname.match(/\.(jpeg|jpg|png)$/)) {
@@ -33,8 +35,10 @@ router.post('/signup', async (req, res) => {
         req.body.admin && req.body.admin == false;
         const newUser = await new User(contents).save();
         const token = await newUser.getAuthToken();
+        await sendWelcomeEmail(newUser.email, newUser.name);
         res.status(201).send({ newUser, token });
     } catch (error) {
+        console.log(error);
         res.status(400).send(error);
     }
 });
@@ -59,7 +63,12 @@ router.post(
     upload.single('upload'),
     async (req, res) => {
         // console.log(req.file);
-        req.user.avatar = req.file.buffer;
+        //req.user.avatar = req.file.buffer;
+        const buffer = await sharp(req.file.buffer)
+            .resize(150, 150)
+            .png()
+            .toBuffer();
+        req.user.avatar = buffer;
         await req.user.save();
         res.send({
             status: 'success',
@@ -106,7 +115,9 @@ router.get('/logoutallsesions', async (req, res) => {
 });
 
 router.delete('/me', async (req, res) => {
+    const { name, email } = req.user;
     await req.user.remove();
+    await niklLaudeEmail(email, name);
     res.status(204).send();
 });
 
@@ -152,12 +163,13 @@ router.use(verifyAdmin);
 
 router.get('/me/:id/avatar', async (req, res) => {
     try {
-        const user = await User.findById(req.params.id);
+        const user = await User.findById(req.params.id).select('+avatar');
         if (!user || !user.avatar) {
             throw new Error();
         }
-        res.set('Content-Type', 'image/*').send(user.avatar);
+        res.set('Content-Type', 'image/jpg').send(user.avatar);
     } catch (error) {
+        console.log(error);
         res.status(404).send({ error: 'No Avatar or user Found!' });
     }
 });

@@ -4,10 +4,7 @@ const User = require('../models/User');
 module.exports = verifyToken = async (req, res, next) => {
     try {
         const token = req.header('Authorization').replace('Bearer ', '');
-        const parsedJWT = jwt.verify(
-            token,
-            'the-demons-inside-my-head-eats-me'
-        );
+        const parsedJWT = jwt.verify(token, process.env.JWT_SECERET_KEY);
         // console.log(parsedJWT);
         if (Date.now() < parsedJWT.exp || !parsedJWT._id) {
             throw Error('Token bad token or expired');
@@ -31,7 +28,7 @@ module.exports = verifyToken = async (req, res, next) => {
         req.token = token;
         next();
     } catch (error) {
-        console.log(error);
+        // console.log(error);
         res.status(401).send({
             message: error || 'You require to log in to fetch this route!',
         });

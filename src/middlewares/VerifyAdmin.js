@@ -9,6 +9,7 @@ module.exports = verifyAdmin = async (req, res, next) => {
         }
         next();
     } catch (error) {
+        // console.log(error);
         res.status(401).send({
             message: error || 'You require to log in to fetch this route!',
         });

@@ -46,18 +46,22 @@ const userSchema = new mongoose.Schema(
                     throw Error('Such a pathetic password try something else!');
                 }
             },
+            select: false,
         },
         avatar: {
             type: Buffer,
             select: false,
         },
-        tokens: [
-            {
-                token: {
-                    type: String,
+        tokens: {
+            type: [
+                {
+                    token: {
+                        type: String,
+                    },
                 },
-            },
-        ],
+            ],
+            select: false,
+        },
         admin: {
             type: Boolean,
             default: false,
@@ -79,8 +83,8 @@ userSchema.virtual('tasks', {
 userSchema.methods.getAuthToken = async function () {
     const token = await jwt.sign(
         { _id: this._id.toString() },
-        'the-demons-inside-my-head-eats-me',
-        { expiresIn: '3d' }
+        process.env.JWT_SECERET_KEY,
+        { expiresIn: process.env.JWT_EXPRIES_IN }
     );
     this.tokens = this.tokens.concat({ token });
     await this.save();
