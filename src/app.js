@@ -25,16 +25,12 @@ const taskRouter = require('./routes/taskRouter');
 
 const app = express();
 
-const PORT = process.env.PORT || 3000;
-
 app.use(express.json());
 
 app.use('/api/v1/user', userRouter);
 app.use('/api/v1/task', taskRouter);
 
-app.listen(PORT, () => {
-    console.log(`Server up and running on PORT ${PORT}`);
-});
+module.exports = app;
 
 // (async () => {
 //     const user = await User.findById('5fdecb433673b70ee059a270');

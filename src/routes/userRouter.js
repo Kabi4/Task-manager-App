@@ -6,6 +6,14 @@ const multer = require('multer');
 const sharp = require('sharp');
 const { sendWelcomeEmail, niklLaudeEmail } = require('../emails/account');
 
+const cookieOptions = {
+    expires: new Date(
+        Date.now() +
+            60 * 60 * 24 * 1000 * process.env.JWT_EXPRIES_IN.replace('d', '')
+    ),
+    httpOnly: true,
+};
+
 const upload = multer({
     // dest: 'images',
     limits: {
@@ -35,6 +43,8 @@ router.post('/signup', async (req, res) => {
         req.body.admin && req.body.admin == false;
         const newUser = await new User(contents).save();
         const token = await newUser.getAuthToken();
+        if (process.env.NODE_ENV === 'production') cookieOptions.secure = true;
+        res.cookie('jwt', token, cookieOptions);
         await sendWelcomeEmail(newUser.email, newUser.name);
         res.status(201).send({ newUser, token });
     } catch (error) {
@@ -50,6 +60,8 @@ router.post('/login', async (req, res) => {
             req.body.password
         );
         const token = await user.getAuthToken();
+        if (process.env.NODE_ENV === 'production') cookieOptions.secure = true;
+        res.cookie('jwt', token, cookieOptions);
         res.send({ user, token });
     } catch (error) {
         console.log(error);
@@ -96,6 +108,8 @@ router.get('/logout', async (req, res) => {
             (token) => token.token !== req.token
         );
         await req.user.save();
+        if (process.env.NODE_ENV === 'production') cookieOptions.secure = true;
+        res.cookie('jwt', '', cookieOptions);
         res.send({ token: '' });
     } catch (error) {
         res.status(500).send();
@@ -108,6 +122,8 @@ router.get('/logoutallsesions', async (req, res) => {
             (token) => token.token === req.token
         );
         await req.user.save();
+        if (process.env.NODE_ENV === 'production') cookieOptions.secure = true;
+        res.cookie('jwt', req.user.tokens[0].token, cookieOptions);
         res.send({ token: req.user.tokens[0].token });
     } catch (error) {
         res.status(500).send();
@@ -153,6 +169,9 @@ router.patch('/me/updatepassword', async (req, res) => {
         req.user.tokens = [];
         await req.user.save();
         const token = await req.user.getAuthToken();
+        if (process.env.NODE_ENV === 'production') cookieOptions.secure = true;
+        res.cookie('jwt', req.user.tokens[0].token, cookieOptions);
+        req.user.tokens[0].token;
         res.send({ user, token });
     } catch (error) {
         res.status(500).send(error);

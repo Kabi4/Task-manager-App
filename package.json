@@ -4,9 +4,12 @@
   "description": "A Tasks Managing App by Node JS",
   "main": "index.js",
   "scripts": {
-    "start": "node ./src/index.js",
-    "dev": "nodemon ./src/index.js -e js",
-    "test": "jest"
+    "start": "node ./src/server.js",
+    "dev": "nodemon ./src/server.js -e js",
+    "test": "env-cmd -f ./config/.env jest --watch"
+  },
+  "jest": {
+    "testEnvironment": "node"
   },
   "repository": {
     "type": "git",
@@ -34,6 +37,7 @@
     "axios": "^0.21.1",
     "env-cmd": "^10.1.0",
     "jest": "^26.6.3",
-    "nodemon": "^2.0.6"
+    "nodemon": "^2.0.6",
+    "supertest": "^6.0.1"
   }
 }
