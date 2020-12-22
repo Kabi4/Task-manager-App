@@ -48,7 +48,7 @@ router.post('/signup', async (req, res) => {
         await sendWelcomeEmail(newUser.email, newUser.name);
         res.status(201).send({ newUser, token });
     } catch (error) {
-        console.log(error);
+        // console.log(error);
         res.status(400).send(error);
     }
 });
@@ -59,6 +59,9 @@ router.post('/login', async (req, res) => {
             req.body.email,
             req.body.password
         );
+        if (!user) {
+            return res.status(404).send();
+        }
         const token = await user.getAuthToken();
         if (process.env.NODE_ENV === 'production') cookieOptions.secure = true;
         res.cookie('jwt', token, cookieOptions);
@@ -188,7 +191,7 @@ router.get('/me/:id/avatar', async (req, res) => {
         }
         res.set('Content-Type', 'image/jpg').send(user.avatar);
     } catch (error) {
-        console.log(error);
+        // console.log(error);
         res.status(404).send({ error: 'No Avatar or user Found!' });
     }
 });
@@ -291,7 +294,7 @@ router.delete('/:id', async (req, res) => {
 //     try{
 //         if(!req.body.email||!req.body.password||!req.body.name||)
 //     }catch(error){
-//         console.log(error);
+//          console.log(error);
 //         res.status(400).send(error);
 //     }
 // })

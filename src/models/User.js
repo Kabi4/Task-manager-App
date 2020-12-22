@@ -81,18 +81,22 @@ userSchema.virtual('tasks', {
 });
 
 userSchema.methods.getAuthToken = async function () {
-    const token = await jwt.sign(
+    const token = jwt.sign(
         { _id: this._id.toString() },
         process.env.JWT_SECERET_KEY,
         { expiresIn: process.env.JWT_EXPRIES_IN }
     );
+    // console.log({ _id: this._id.toString() }, process.env.JWT_SECERET_KEY, {
+    //     expiresIn: process.env.JWT_EXPRIES_IN,
+    // });
+    // console.log(this);
     this.tokens = this.tokens.concat({ token });
     await this.save();
     return token;
 };
 
 userSchema.statics.findAndAuthenticate = async (email, password) => {
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email }).select('+password +tokens');
     if (!user) {
         throw new Error('Invalid Email or password!');
     }
