@@ -44,11 +44,11 @@ router.post('/signup', async (req, res) => {
         const newUser = await new User(contents).save();
         const token = await newUser.getAuthToken();
         if (process.env.NODE_ENV === 'production') cookieOptions.secure = true;
+        sendWelcomeEmail(newUser.email, newUser.name);
         res.cookie('jwt', token, cookieOptions);
-        await sendWelcomeEmail(newUser.email, newUser.name);
         res.status(201).send({ newUser, token });
     } catch (error) {
-        // console.log(error);
+        console.log(error);
         res.status(400).send(error);
     }
 });
@@ -136,7 +136,7 @@ router.get('/logoutallsesions', async (req, res) => {
 router.delete('/me', async (req, res) => {
     const { name, email } = req.user;
     await req.user.remove();
-    await niklLaudeEmail(email, name);
+    niklLaudeEmail(email, name);
     res.status(204).send();
 });
 

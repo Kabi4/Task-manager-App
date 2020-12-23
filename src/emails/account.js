@@ -19,12 +19,5 @@ exports.niklLaudeEmail = async (email, name) => {
         text: `We were glad to have you! ${name}.Please tell us how to improve our app. Thank you!`,
         html: `<strong>We were glad to have you! ${name}.Please tell us how to improve our app. Thank you!</strong>`,
     };
-    await sgMail
-        .send(msg)
-        .then(() => {
-            console.log('Email sent');
-        })
-        .catch((error) => {
-            console.error(error);
-        });
+    await sgMail.send(msg);
 };
