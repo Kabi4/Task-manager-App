@@ -67,7 +67,7 @@ router.post('/login', async (req, res) => {
         res.cookie('jwt', token, cookieOptions);
         res.send({ user, token });
     } catch (error) {
-        console.log(error);
+        // console.log(error);
         res.status(400).send(error);
     }
 });

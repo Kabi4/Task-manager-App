@@ -5,15 +5,15 @@ module.exports = verifyToken = async (req, res, next) => {
     try {
         const token = req.header('Authorization').replace('Bearer ', '');
         const parsedJWT = jwt.verify(token, process.env.JWT_SECERET_KEY);
-        // console.log(parsedJWT);
+
         if (Date.now() < parsedJWT.exp || !parsedJWT._id) {
             throw Error('Token bad token or expired');
         }
-
         const user = await User.findOne({
             _id: parsedJWT._id,
             'tokens.token': token,
         }).select('+tokens');
+        // console.log(user);
         if (!user) {
             throw Error('Token bad token or expired');
         }
