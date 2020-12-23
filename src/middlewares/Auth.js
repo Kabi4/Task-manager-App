@@ -12,7 +12,7 @@ module.exports = verifyToken = async (req, res, next) => {
         const user = await User.findOne({
             _id: parsedJWT._id,
             'tokens.token': token,
-        }).select('+tokens');
+        }).select('+tokens +admin');
         // console.log(user);
         if (!user) {
             throw Error('Token bad token or expired');

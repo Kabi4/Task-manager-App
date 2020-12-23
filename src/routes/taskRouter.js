@@ -22,6 +22,7 @@ router.post('/', async (req, res) => {
         const newTask = await new Task(contents).save();
         res.status(201).send(newTask);
     } catch (error) {
+        // console.log(error);
         res.status(400).send(error);
     }
 });
@@ -127,19 +128,24 @@ router.patch('/:id', async (req, res) => {
         //     runValidators: true,
         //     useFindAndModify: false,
         // });
-        const task = await Task.findById(req.params.id);
-        if (!(task.owner._id.toString() === req.user._id.toString())) {
-            return res.status(404).send();
-        }
+        const task = await Task.findOne({
+            _id: req.params.id,
+            owner: req.user._id,
+        });
         if (!task) {
             return res.status(404).send('Task not found!');
         }
+        if (!(task.owner._id.toString() === req.user._id.toString())) {
+            return res.status(404).send();
+        }
+
         updates.forEach((update) => {
             task[update] = req.body[update];
         });
         await task.save();
         res.send(task);
     } catch (error) {
+        console.log(error);
         res.status(500).send(error);
     }
 });
